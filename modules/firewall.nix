@@ -28,7 +28,7 @@
     if isList value
     then concatMapStringsSep "," mapPortValue value
     else if isAttrs value
-    then "${value.start}:${value.end}"
+    then "${toString value.start}:${toString value.end}"
     else toString value;
 
   mapModuleOptions = module: options: let
