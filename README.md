@@ -1,6 +1,6 @@
 # nixos-declarative-iptables
 
-## WARNING: This is in very early stages and not all functionality is tested, use at your own risk, PRs to cover more options are welcome.
+#### WARNING: This is in very early stages and not all functionality is tested, use at your own risk, PRs to cover more options are welcome.
 
 A declarative module for `iptables`.
 
@@ -8,7 +8,7 @@ A declarative module for `iptables`.
 
 ### TCP/UDP
 
-#### Allow all inbound traffic on TCP ports 80 and 443
+Allow all inbound traffic on TCP ports 80 and 443
 
 ```nix
   networking.firewall.rules.tcp = [
@@ -22,7 +22,7 @@ A declarative module for `iptables`.
 
 ### SNAT
 
-#### Masquerade all traffic coming from container interfaces (ve-*) leaving a certain outbound interface (ens3)
+Masquerade all traffic coming from container interfaces (ve-*) leaving a certain outbound interface (ens3)
 
 ```nix
   networking.firewall.rules.extra = [
