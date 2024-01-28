@@ -28,13 +28,13 @@ Add this repository as a input to your flake
 Allow all inbound traffic on TCP ports 80 and 443
 
 ```nix
-  networking.firewall.rules.tcp = [
-    # ip46tables -I nixos-firewall -m tcp -p tcp -m multiport --destination-ports 80,443 -j nixos-fw-accept -m --comment 'nginx'
-    {
-      ports = [80 443];
-      description = "nginx";
-    }
-  ];
+networking.firewall.rules.tcp = [
+  # ip46tables -I nixos-firewall -m tcp -p tcp -m multiport --destination-ports 80,443 -j nixos-fw-accept -m --comment 'nginx'
+  {
+    ports = [80 443];
+    description = "nginx";
+  }
+];
 ```
 
 ### SNAT
@@ -42,34 +42,34 @@ Allow all inbound traffic on TCP ports 80 and 443
 Masquerade all traffic coming from container interfaces (ve-*) leaving a certain outbound interface (ens3)
 
 ```nix
-  networking.firewall.rules.extra = [
-    # ip46tables -t mangle -A PREROUTING -i ve-+ -m mark --set-mark 0x01/0xff
-    {
-      version = "any";
-      table = "mangle";
-      chain = "PREROUTING";
-      input = "ve-+";
-      target = {
-        module = "MARK";
-        options.mark = "0x01/0xff";
-      };
-    }
-    # ip46tables -t mangle -A POSTROUTING -o ens3 -m mark --mark 0x01/0xff
-    {
-      version = "any";
-      table = "nat";
-      chain = "POSTROUTING";
-      output = "ens3";
-      modules = [
-        {
-          module = "mark";
-          options = {
-            value = "0x01";
-            mask = "0xff";
-          };
-        }
-      ];
-      target = "MASQUERADE";
-    }
-  ];
+networking.firewall.rules.extra = [
+  # ip46tables -t mangle -A PREROUTING -i ve-+ -m mark --set-mark 0x01/0xff
+  {
+    version = "any";
+    table = "mangle";
+    chain = "PREROUTING";
+    input = "ve-+";
+    target = {
+      module = "MARK";
+      options.mark = "0x01/0xff";
+    };
+  }
+  # ip46tables -t mangle -A POSTROUTING -o ens3 -m mark --mark 0x01/0xff
+  {
+    version = "any";
+    table = "nat";
+    chain = "POSTROUTING";
+    output = "ens3";
+    modules = [
+      {
+        module = "mark";
+        options = {
+          value = "0x01";
+          mask = "0xff";
+        };
+      }
+    ];
+    target = "MASQUERADE";
+  }
+];
 ```
