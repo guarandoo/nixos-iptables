@@ -631,7 +631,7 @@
     options =
       ruleOptions
       // {
-        ports = mkOption {
+        destinationPorts = mkOption {
           type = types.listOf types.port;
           description = "";
         };
@@ -644,7 +644,7 @@
         }
         {
           module = "multiport";
-          options.destinationPorts.ports = config.ports;
+          options.destinationPorts.ports = config.destinationPorts;
         }
       ];
     };
@@ -654,7 +654,7 @@
     options =
       ruleOptions
       // {
-        ports = mkOption {
+        destinationPorts = mkOption {
           type = types.listOf types.port;
           description = "";
         };
@@ -667,7 +667,7 @@
         }
         {
           module = "multiport";
-          options.destinationPorts.ports = config.ports;
+          options.destinationPorts.ports = config.destinationPorts;
         }
       ];
     };
