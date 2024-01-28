@@ -325,7 +325,11 @@
                 description = "";
               };
               ports = mkOption {
-                type = types.oneOf [types.port (types.listOf types.port) (types.submodule portRangeOptions)];
+                type = types.oneOf [
+                  types.port
+                  (types.submodule portRangeOptions)
+                  (types.listOf (types.either types.port (types.submodule portRangeOptions)))
+                ];
                 description = "";
               };
             };
@@ -342,7 +346,11 @@
                 description = "";
               };
               ports = mkOption {
-                type = types.oneOf [types.port (types.listOf types.port) (types.submodule portRangeOptions)];
+                type = types.oneOf [
+                  types.port
+                  (types.submodule portRangeOptions)
+                  (types.listOf (types.either types.port (types.submodule portRangeOptions)))
+                ];
                 description = "";
               };
             };
@@ -359,7 +367,11 @@
                 description = "";
               };
               ports = mkOption {
-                type = types.oneOf [types.port (types.listOf types.port) (types.submodule portRangeOptions)];
+                type = types.oneOf [
+                  types.port
+                  (types.submodule portRangeOptions)
+                  (types.listOf (types.either types.port (types.submodule portRangeOptions)))
+                ];
                 description = "";
               };
             };
@@ -632,7 +644,7 @@
       ruleOptions
       // {
         destinationPorts = mkOption {
-          type = types.listOf types.port;
+          type = types.listOf (types.either types.port (types.submodule portRangeOptions));
           description = "";
         };
       };
@@ -655,7 +667,7 @@
       ruleOptions
       // {
         destinationPorts = mkOption {
-          type = types.listOf types.port;
+          type = types.listOf (types.either types.port (types.submodule portRangeOptions));
           description = "";
         };
       };
