@@ -4,6 +4,23 @@
 
 A declarative module for `iptables`.
 
+## Usage
+
+### Flakes
+
+Add this repository as a input to your flake
+
+```nix
+{
+  description = "My NixOS flake";
+  inputs = {
+    # ...
+    nixos-iptables.url = "github:guarandoo/nixos-iptables";
+    # ...
+  };
+}
+```
+
 ## Examples
 
 ### TCP/UDP
