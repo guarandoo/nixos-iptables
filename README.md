@@ -8,7 +8,7 @@ A declarative module for `iptables`.
 
 ### Flakes
 
-Add this repository as a input to your flake
+Add this repository as an input to your flake
 
 ```nix
 {
