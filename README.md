@@ -15,7 +15,7 @@ Add this repository as an input to your flake
   description = "My NixOS flake";
   inputs = {
     # ...
-    nixos-iptables.url = "github:guarandoo/nixos-iptables";
+    nixos-iptables.url = "github:guarandoo/nixos-iptables/nixos-23.11";
     # ...
   };
 }
