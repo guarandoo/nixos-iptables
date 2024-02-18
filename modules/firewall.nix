@@ -23,6 +23,10 @@
     ;
 
   isNotNullAndTrue = value: !isNull value && value;
+  stringifyList = value:
+    if isList value
+    then concatStringsSep ","
+    else value;
 
   mapPortValue = value:
     if isList value
@@ -211,14 +215,11 @@
         then "-A"
         else "-D"
       )} ${rule.chain}"
-      (optional (!isNull rule.input) "-i ${rule.input}")
-      (optional (!isNull rule.output) "-o ${rule.output}")
-      (optional (!isNull rule.source) "-s ${
-        if builtins.isList rule.source
-        then concatStringsSep "," rule.source
-        else rule.source
-      }")
-      (optional (!isNull rule.destination) "-d ${rule.destination}")
+
+      (optional (!isNull rule.input) "${optionalString rule.input.invert "! "}-i ${stringifyList rule.input.interface}")
+      (optional (!isNull rule.output) "${optionalString rule.input.invert "! "}-o ${stringifyList rule.output.interface}")
+      (optional (!isNull rule.source) "${optionalString rule.input.invert "! "}-s ${stringifyList rule.source.address}")
+      (optional (!isNull rule.destination) "${optionalString rule.input.invert "! "}-d ${stringifyList rule.destination.address}")
       (optional (!isNull rule.protocol) "-p ${rule.protocol}")
       (concatMapStringsSep " " (module: "-m ${module.module}  ${mapModuleOptions module.module module.options}") rule.modules)
       (optional (!isNull rule.target) "-j ${mapTargetOptions rule.target}")
@@ -568,6 +569,34 @@
     };
   };
 
+  addrOptions = {
+    options = {
+      invert = mkOption {
+        type = types.bool;
+        default = false;
+        description = "";
+      };
+      address = mkOption {
+        type = types.oneOf [types.nonEmptyStr (types.listOf types.nonEmptyStr)];
+        description = "";
+      };
+    };
+  };
+
+  interfaceOptions = {
+    options = {
+      invert = mkOption {
+        type = types.bool;
+        default = false;
+        description = "";
+      };
+      interface = mkOption {
+        type = types.oneOf [types.nonEmptyStr (types.listOf types.nonEmptyStr)];
+        description = "";
+      };
+    };
+  };
+
   ruleOptions = {
     version = mkOption {
       type = types.enum [4 6 "any"];
@@ -584,22 +613,22 @@
       description = "";
     };
     input = mkOption {
-      type = types.nullOr types.nonEmptyStr;
+      type = types.nullOr (types.submodule interfaceOptions);
       default = null;
       description = "";
     };
     output = mkOption {
-      type = types.nullOr types.nonEmptyStr;
+      type = types.nullOr (types.submodule interfaceOptions);
       default = null;
       description = "";
     };
     source = mkOption {
-      type = types.nullOr (types.oneOf [types.nonEmptyStr (types.listOf types.nonEmptyStr)]);
+      type = types.nullOr (types.submodule addrOptions);
       default = null;
       description = "";
     };
     destination = mkOption {
-      type = types.nullOr types.nonEmptyStr;
+      type = types.nullOr (types.submodule addrOptions);
       description = "";
       default = null;
     };
