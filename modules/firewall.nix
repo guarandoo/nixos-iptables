@@ -624,22 +624,38 @@
       description = "";
     };
     input = mkOption {
-      type = types.nullOr (types.submodule interfaceOptions);
+      type = types.nullOr (
+        types.either
+        types.oneOf [types.nonEmptyStr (types.listOf types.nonEmptyStr)]
+        (types.submodule interfaceOptions)
+      );
       default = null;
       description = "";
     };
     output = mkOption {
-      type = types.nullOr (types.submodule interfaceOptions);
+      type = types.nullOr (
+        types.either
+        types.oneOf [types.nonEmptyStr (types.listOf types.nonEmptyStr)]
+        (types.submodule interfaceOptions)
+      );
       default = null;
       description = "";
     };
     source = mkOption {
-      type = types.nullOr (types.submodule addrOptions);
+      type = types.nullOr (
+        types.either
+        types.oneOf [types.nonEmptyStr (types.listOf types.nonEmptyStr)]
+        (types.submodule addrOptions)
+      );
       default = null;
       description = "";
     };
     destination = mkOption {
-      type = types.nullOr (types.submodule addrOptions);
+      type = types.nullOr (
+        types.either
+        types.oneOf [types.nonEmptyStr (types.listOf types.nonEmptyStr)]
+        (types.submodule addrOptions)
+      );
       description = "";
       default = null;
     };
