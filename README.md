@@ -43,7 +43,7 @@ Prevent traffic destined for RFC1918 addresses from leaving non-private interfac
 networking.firewall.rules.extra = [
   # iptables -A nixos-fw -d 192.168.0.0/16,172.16.0.0/12,10.0.0.0/8 ! -o ens3 -j nixos-fw-refuse -m --comment 'drop bogons'
   {
-    version = "any";
+    version = 4;
     destination = [
       "192.168.0.0/16"
       "172.16.0.0/12"
