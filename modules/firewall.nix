@@ -7,6 +7,8 @@
     (builtins)
     isList
     isAttrs
+    isString
+    isInt
     attrNames
     ;
 
@@ -23,17 +25,26 @@
     ;
 
   isNotNullAndTrue = value: !isNull value && value;
-  stringifyList = value:
-    if isList value
-    then concatStringsSep ","
-    else value;
 
+  mapGenericValue = value:
+    if isList value
+    then concatMapStringsSep "," mapGenericValue value
+    else if isString value
+    then value
+    else if isInt value
+    then toString value
+    else throw "unhandled type";
   mapPortValue = value:
     if isList value
     then concatMapStringsSep "," mapPortValue value
     else if isAttrs value
     then "${toString value.start}:${toString value.end}"
     else toString value;
+
+  mapGenericOptions = mapFn: switch: options: "${optionalString (isAttrs options) (optionalString options.invert "! ")}${switch} ${mapFn options.value}";
+  mapAddrOptions = mapGenericOptions mapGenericValue;
+  mapInterfaceOptions = mapGenericOptions mapGenericValue;
+  mapPortOptions = mapGenericOptions mapPortValue;
 
   mapModuleOptions = module: options: let
     mapOpts = {
@@ -216,10 +227,10 @@
         else "-D"
       )} ${rule.chain}"
 
-      (optional (!isNull rule.input) "${optionalString rule.input.invert "! "}-i ${stringifyList rule.input.interface}")
-      (optional (!isNull rule.output) "${optionalString rule.input.invert "! "}-o ${stringifyList rule.output.interface}")
-      (optional (!isNull rule.source) "${optionalString rule.input.invert "! "}-s ${stringifyList rule.source.address}")
-      (optional (!isNull rule.destination) "${optionalString rule.input.invert "! "}-d ${stringifyList rule.destination.address}")
+      (optional (!isNull rule.input) (mapAddrOptions "-i" rule.input))
+      (optional (!isNull rule.output) (mapAddrOptions "-o" rule.output))
+      (optional (!isNull rule.source) (mapInterfaceOptions "-s" rule.source))
+      (optional (!isNull rule.destination) (mapInterfaceOptions "-d" rule.destination))
       (optional (!isNull rule.protocol) "-p ${rule.protocol}")
       (concatMapStringsSep " " (module: "-m ${module.module}  ${mapModuleOptions module.module module.options}") rule.modules)
       (optional (!isNull rule.target) "-j ${mapTargetOptions rule.target}")
@@ -576,7 +587,7 @@
         default = false;
         description = "";
       };
-      address = mkOption {
+      value = mkOption {
         type = types.oneOf [types.nonEmptyStr (types.listOf types.nonEmptyStr)];
         description = "";
       };
@@ -590,7 +601,7 @@
         default = false;
         description = "";
       };
-      interface = mkOption {
+      value = mkOption {
         type = types.oneOf [types.nonEmptyStr (types.listOf types.nonEmptyStr)];
         description = "";
       };
