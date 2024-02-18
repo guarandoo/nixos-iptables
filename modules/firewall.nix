@@ -613,6 +613,7 @@
   ruleOptions = {
     version = mkOption {
       type = types.enum [4 6 "any"];
+      default = "any";
       description = "";
     };
     table = mkOption {
