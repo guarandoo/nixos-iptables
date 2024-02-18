@@ -41,7 +41,7 @@
     then "${toString value.start}:${toString value.end}"
     else toString value;
 
-  mapGenericOptions = mapFn: switch: options: "${optionalString (isAttrs options) (optionalString options.invert "! ")}${switch} ${mapFn options.value}";
+  mapGenericOptions = mapFn: switch: options: "${optionalString (isAttrs options) (optionalString options.invert "! ")}${switch} ${builtins.trace options.value (mapFn options.value)}";
   mapAddrOptions = mapGenericOptions mapGenericValue;
   mapInterfaceOptions = mapGenericOptions mapGenericValue;
   mapPortOptions = mapGenericOptions mapPortValue;
