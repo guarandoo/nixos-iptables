@@ -626,7 +626,7 @@
     input = mkOption {
       type = types.nullOr (
         types.either
-        types.oneOf [types.nonEmptyStr (types.listOf types.nonEmptyStr)]
+        (types.oneOf [types.nonEmptyStr (types.listOf types.nonEmptyStr)])
         (types.submodule interfaceOptions)
       );
       default = null;
@@ -635,7 +635,7 @@
     output = mkOption {
       type = types.nullOr (
         types.either
-        types.oneOf [types.nonEmptyStr (types.listOf types.nonEmptyStr)]
+        (types.oneOf [types.nonEmptyStr (types.listOf types.nonEmptyStr)])
         (types.submodule interfaceOptions)
       );
       default = null;
@@ -644,7 +644,7 @@
     source = mkOption {
       type = types.nullOr (
         types.either
-        types.oneOf [types.nonEmptyStr (types.listOf types.nonEmptyStr)]
+        (types.oneOf [types.nonEmptyStr (types.listOf types.nonEmptyStr)])
         (types.submodule addrOptions)
       );
       default = null;
@@ -653,7 +653,7 @@
     destination = mkOption {
       type = types.nullOr (
         types.either
-        types.oneOf [types.nonEmptyStr (types.listOf types.nonEmptyStr)]
+        (types.oneOf [types.nonEmptyStr (types.listOf types.nonEmptyStr)])
         (types.submodule addrOptions)
       );
       description = "";
