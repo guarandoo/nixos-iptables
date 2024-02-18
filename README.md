@@ -23,7 +23,7 @@ Add this repository as an input to your flake
 
 ## Examples
 
-### TCP/UDP
+### Simple
 
 Allow all inbound traffic on TCP ports 80 and 443
 
@@ -33,6 +33,27 @@ networking.firewall.rules.tcp = [
   {
     ports = [80 443];
     description = "nginx";
+  }
+];
+```
+
+Prevent traffic destined for RFC1918 addresses from leaving non-private interfaces
+
+```nix
+networking.firewall.rules.extra = [
+  # iptables -A nixos-fw -d 192.168.0.0/16,172.16.0.0/12,10.0.0.0/8 ! -o ens3 -j nixos-fw-refuse -m --comment 'drop bogons'
+  {
+    version = "any";
+    destination = [
+      "192.168.0.0/16"
+      "172.16.0.0/12"
+      "10.0.0.0/8"
+    ];
+    output = {
+      invert = true;
+      value = "ens3";
+    };
+    description = "drop bogons";
   }
 ];
 ```
