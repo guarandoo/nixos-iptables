@@ -7,6 +7,8 @@
     (builtins)
     isList
     isAttrs
+    isString
+    isInt
     attrNames
     ;
 
@@ -24,12 +26,27 @@
 
   isNotNullAndTrue = value: !isNull value && value;
 
+  mapGenericValue = value:
+    if isList value
+    then concatMapStringsSep "," mapGenericValue value
+    else if isString value
+    then value
+    else if isInt value
+    then toString value
+    else throw "unhandled type";
   mapPortValue = value:
     if isList value
     then concatMapStringsSep "," mapPortValue value
     else if isAttrs value
     then "${toString value.start}:${toString value.end}"
     else toString value;
+
+  mapGenericOptions = mapFn: switch: options: let
+    set = isAttrs options;
+  in "${optionalString (set && options.invert) "! "}${switch} ${mapFn options.value or options}";
+  mapAddrOptions = mapGenericOptions mapGenericValue;
+  mapInterfaceOptions = mapGenericOptions mapGenericValue;
+  mapPortOptions = mapGenericOptions mapPortValue;
 
   mapModuleOptions = module: options: let
     mapOpts = {
@@ -211,14 +228,11 @@
         then "-A"
         else "-D"
       )} ${rule.chain}"
-      (optional (!isNull rule.input) "-i ${rule.input}")
-      (optional (!isNull rule.output) "-o ${rule.output}")
-      (optional (!isNull rule.source) "-s ${
-        if builtins.isList rule.source
-        then concatStringsSep "," rule.source
-        else rule.source
-      }")
-      (optional (!isNull rule.destination) "-d ${rule.destination}")
+
+      (optional (!isNull rule.input) (mapAddrOptions "-i" rule.input))
+      (optional (!isNull rule.output) (mapAddrOptions "-o" rule.output))
+      (optional (!isNull rule.source) (mapInterfaceOptions "-s" rule.source))
+      (optional (!isNull rule.destination) (mapInterfaceOptions "-d" rule.destination))
       (optional (!isNull rule.protocol) "-p ${rule.protocol}")
       (concatMapStringsSep " " (module: "-m ${module.module}  ${mapModuleOptions module.module module.options}") rule.modules)
       (optional (!isNull rule.target) "-j ${mapTargetOptions rule.target}")
@@ -568,6 +582,34 @@
     };
   };
 
+  addrOptions = {
+    options = {
+      invert = mkOption {
+        type = types.bool;
+        default = false;
+        description = "";
+      };
+      value = mkOption {
+        type = types.oneOf [types.nonEmptyStr (types.listOf types.nonEmptyStr)];
+        description = "";
+      };
+    };
+  };
+
+  interfaceOptions = {
+    options = {
+      invert = mkOption {
+        type = types.bool;
+        default = false;
+        description = "";
+      };
+      value = mkOption {
+        type = types.oneOf [types.nonEmptyStr (types.listOf types.nonEmptyStr)];
+        description = "";
+      };
+    };
+  };
+
   ruleOptions = {
     version = mkOption {
       type = types.enum [4 6 "any"];
@@ -584,22 +626,38 @@
       description = "";
     };
     input = mkOption {
-      type = types.nullOr types.nonEmptyStr;
+      type = types.nullOr (
+        types.either
+        (types.oneOf [types.nonEmptyStr (types.listOf types.nonEmptyStr)])
+        (types.submodule interfaceOptions)
+      );
       default = null;
       description = "";
     };
     output = mkOption {
-      type = types.nullOr types.nonEmptyStr;
+      type = types.nullOr (
+        types.either
+        (types.oneOf [types.nonEmptyStr (types.listOf types.nonEmptyStr)])
+        (types.submodule interfaceOptions)
+      );
       default = null;
       description = "";
     };
     source = mkOption {
-      type = types.nullOr (types.oneOf [types.nonEmptyStr (types.listOf types.nonEmptyStr)]);
+      type = types.nullOr (
+        types.either
+        (types.oneOf [types.nonEmptyStr (types.listOf types.nonEmptyStr)])
+        (types.submodule addrOptions)
+      );
       default = null;
       description = "";
     };
     destination = mkOption {
-      type = types.nullOr types.nonEmptyStr;
+      type = types.nullOr (
+        types.either
+        (types.oneOf [types.nonEmptyStr (types.listOf types.nonEmptyStr)])
+        (types.submodule addrOptions)
+      );
       description = "";
       default = null;
     };
