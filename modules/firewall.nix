@@ -43,11 +43,7 @@
 
   mapGenericOptions = mapFn: switch: options: let
     set = isAttrs options;
-  in "${optionalString (set && options.invert) "! "}${switch} ${mapFn (
-    if set
-    then options.value
-    else options
-  )}";
+  in "${optionalString (set && options.invert) "! "}${switch} ${mapFn options.value or options}";
   mapAddrOptions = mapGenericOptions mapGenericValue;
   mapInterfaceOptions = mapGenericOptions mapGenericValue;
   mapPortOptions = mapGenericOptions mapPortValue;
