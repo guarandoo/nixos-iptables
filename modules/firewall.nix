@@ -142,6 +142,11 @@
       mark = options:
         optional (!isNull options) [
           "MARK"
+          (optional (!isNull options.mark) "--set-mark ${options.mark}${optionalString (!isNull options.mark.mask) "/${options.mark.mask}"}")
+          (optional (!isNull options.xmark) "--set-xmark ${options.xmark}${optionalString (!isNull options.xmark.mask) "/${options.xmark.mask}"}")
+          (optional (!isNull options.andMark) "--and-mark ${options.andMark}")
+          (optional (!isNull options.orMark) "--or-mark ${options.orMark}")
+          (optional (!isNull options.xorMark) "--xor-mark ${options.xorMark}")
         ];
       masquerade = options:
         optional (!isNull options) [
@@ -561,7 +566,47 @@
     mark = {
       options = {
         mark = mkOption {
-          type = types.nonEmptyStr;
+          type = types.nullOr (types.subModule {
+            options = {
+              value = mkOption {
+                type = types.nonEmptyStr;
+                description = "";
+              };
+              mask = mkOption {
+                type = types.nullOr types.nonEmptyStr;
+                default = null;
+                description = "";
+              };
+            };
+          });
+          description = "";
+        };
+        xmark = mkOption {
+          type = types.nullOr (types.subModule {
+            options = {
+              value = mkOption {
+                type = types.nonEmptyStr;
+                description = "";
+              };
+              mask = mkOption {
+                type = types.nullOr types.nonEmptyStr;
+                default = null;
+                description = "";
+              };
+            };
+          });
+          description = "";
+        };
+        andMark = mkOption {
+          type = types.nullOr types.nonEmptyStr;
+          description = "";
+        };
+        orMark = mkOption {
+          type = types.nullOr types.nonEmptyStr;
+          description = "";
+        };
+        xorMark = mkOption {
+          type = types.nullOr types.nonEmptyStr;
           description = "";
         };
       };
