@@ -71,7 +71,7 @@ networking.firewall.rules.extra = [
     chain = "PREROUTING";
     input = "ve-+";
     target = {
-      module = "MARK";
+      module = "mark";
       options.mark = "0x01/0xff";
     };
   }
