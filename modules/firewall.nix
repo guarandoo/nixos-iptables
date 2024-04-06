@@ -558,6 +558,14 @@
         };
       };
     };
+    mark = {
+      options = {
+        mark = mkOption {
+          type = types.nonEmptyStr;
+          description = "";
+        };
+      };
+    };
     snat = {
       options = {
         toSource = mkOption {
