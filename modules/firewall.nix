@@ -579,6 +579,7 @@
               };
             };
           });
+          default = null;
           description = "";
         };
         xmark = mkOption {
@@ -595,18 +596,22 @@
               };
             };
           });
+          default = null;
           description = "";
         };
         andMark = mkOption {
           type = types.nullOr types.nonEmptyStr;
+          default = null;
           description = "";
         };
         orMark = mkOption {
           type = types.nullOr types.nonEmptyStr;
+          default = null;
           description = "";
         };
         xorMark = mkOption {
           type = types.nullOr types.nonEmptyStr;
+          default = null;
           description = "";
         };
       };
