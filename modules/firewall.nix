@@ -566,7 +566,7 @@
     mark = {
       options = {
         mark = mkOption {
-          type = types.nullOr (types.subModule {
+          type = types.nullOr (types.submodule {
             options = {
               value = mkOption {
                 type = types.nonEmptyStr;
@@ -582,7 +582,7 @@
           description = "";
         };
         xmark = mkOption {
-          type = types.nullOr (types.subModule {
+          type = types.nullOr (types.submodule {
             options = {
               value = mkOption {
                 type = types.nonEmptyStr;
