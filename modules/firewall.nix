@@ -142,8 +142,8 @@
       mark = options:
         optional (!isNull options) [
           "MARK"
-          (optional (!isNull options.mark) "--set-mark ${options.mark}${optionalString (!isNull options.mark.mask) "/${options.mark.mask}"}")
-          (optional (!isNull options.xmark) "--set-xmark ${options.xmark}${optionalString (!isNull options.xmark.mask) "/${options.xmark.mask}"}")
+          (optional (!isNull options.mark) "--set-mark ${options.mark.value}${optionalString (!isNull options.mark.mask) "/${options.mark.mask}"}")
+          (optional (!isNull options.xmark) "--set-xmark ${options.xmark.value}${optionalString (!isNull options.xmark.mask) "/${options.xmark.mask}"}")
           (optional (!isNull options.andMark) "--and-mark ${options.andMark}")
           (optional (!isNull options.orMark) "--or-mark ${options.orMark}")
           (optional (!isNull options.xorMark) "--xor-mark ${options.xorMark}")
