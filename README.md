@@ -72,7 +72,10 @@ networking.firewall.rules.extra = [
     input = "ve-+";
     target = {
       module = "mark";
-      options.mark = "0x01/0xff";
+      options.mark = {
+        value = "0x01";
+        mask = "0xff";
+      };
     };
   }
   # ip46tables -t mangle -A POSTROUTING -o ens3 -m mark --mark 0x01/0xff
