@@ -8,16 +8,31 @@ A declarative module for `iptables`.
 
 ### Flakes
 
-Add this repository as an input to your flake
+Add this repository as an input to your flake and import the module
 
 ```nix
 {
   description = "My NixOS flake";
   inputs = {
-    # ...
-    nixos-iptables.url = "github:guarandoo/nixos-iptables/nixos-23.11";
+    nixpkgs.url = "github:NixOS/nixpkgs/unstable";
+    nixos-iptables.url = "github:guarandoo/nixos-iptables/nixos-23.11"; # add flake as input
     # ...
   };
+  outputs = {
+    nixpkgs,
+    nixos-iptables,
+    ...
+  }: {
+    nixosConfigurations = {
+      my-nixos-system = nixpkgs.lib.nixosSystem {
+        system = "x86_64-linux";
+        modules = [
+          nixos-iptables.nixosModules.default # add module
+          # ...
+        ];
+      }
+    };
+  }
 }
 ```
 
