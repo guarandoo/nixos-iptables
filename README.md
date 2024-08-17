@@ -115,10 +115,11 @@ networking.firewall.rules.extra = [
 
 ### DNAT
 
-Forward TCP connections received on `192.168.0.1:22` to `192.168.0.2:2222`
+Forward TCP connections received on `192.168.0.1:2222` to `192.168.0.2:22`
 
 ```nix
 networking.firewall.rules.extra = [
+  # iptables -t nat -A PREROUTING -i ens18 -d 192.168.0.1 -p tcp --dport 2222 -j DNAT --to-destination 192.168.0.2:22
   {
     version = 4;
     table = "nat";
@@ -128,12 +129,12 @@ networking.firewall.rules.extra = [
     modules = [
       {
         module = "tcp";
-        options.destinationPort = 22;
+        options.destinationPort = 2222;
       }
     ];
     target = {
       module = "dnat";
-      options.toDestination = "192.168.0.2:2222";
+      options.toDestination = "192.168.0.2:22";
     };
   }
 ];
