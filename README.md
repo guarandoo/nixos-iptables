@@ -112,3 +112,29 @@ networking.firewall.rules.extra = [
   }
 ];
 ```
+
+### DNAT
+
+Forward TCP connections received on `192.168.0.1:22` to `192.168.0.2:2222`
+
+```nix
+networking.firewall.rules.extra = [
+  {
+    version = 4;
+    table = "nat";
+    chain = "PREROUTING";
+    input = "ens18";
+    destination = "192.168.0.1";
+    modules = [
+      {
+        module = "tcp";
+        options.destinationPort = 22;
+      }
+    ];
+    target = {
+      module = "dnat";
+      options.toDestination = "192.168.0.2:2222";
+    };
+  }
+];
+```
