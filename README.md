@@ -15,8 +15,8 @@ Add this repository as an input to your flake and import the module
   description = "My NixOS flake";
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/unstable";
-    nixos-iptables.url = "github:guarandoo/nixos-iptables/nixos-23.11"; # add flake as input
     # ...
+    nixos-iptables.url = "github:guarandoo/nixos-iptables/nixos-23.11"; # add flake as input
   };
   outputs = {
     nixpkgs,
@@ -27,8 +27,8 @@ Add this repository as an input to your flake and import the module
       my-nixos-system = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
         modules = [
-          nixos-iptables.nixosModules.default # add module
           # ...
+          nixos-iptables.nixosModules.default # add module
         ];
       }
     };
