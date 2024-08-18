@@ -52,6 +52,18 @@ networking.firewall.rules.tcp = [
 ];
 ```
 
+ Allow all inbound traffic on UDP port 53
+
+```nix
+networking.firewall.rules.udp = [
+  # ip46tables -A nixos-firewall -m udp -p udp -m multiport --destination-ports 53 -j nixos-fw-accept -m --comment 'dns'
+  {
+    destinationPorts = [53];
+    description = "dns";
+  }
+];
+```
+
 Prevent traffic destined for RFC1918 addresses from leaving non-private interfaces
 
 ```nix
