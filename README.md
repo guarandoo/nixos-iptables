@@ -44,7 +44,7 @@ Allow all inbound traffic on TCP ports 80 and 443
 
 ```nix
 networking.firewall.rules.tcp = [
-  # ip46tables -I nixos-firewall -m tcp -p tcp -m multiport --destination-ports 80,443 -j nixos-fw-accept -m --comment 'nginx'
+  # ip46tables -A nixos-firewall -m tcp -p tcp -m multiport --destination-ports 80,443 -j nixos-fw-accept -m --comment 'nginx'
   {
     ports = [80 443];
     description = "nginx";
