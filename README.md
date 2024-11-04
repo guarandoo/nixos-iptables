@@ -151,3 +151,28 @@ networking.firewall.rules.extra = [
   }
 ];
 ```
+### Redirect
+
+Redirect all UDP packets received on port `53` to port `5353`
+
+```nix
+networking.firewall.rules.extra = [
+  # iptables -t nat -A PREROUTING -i ens18 -p udp --dport 53 -j REDIRECT --to-ports 5353
+  {
+    version = "any";
+    table = "nat";
+    chain = "PREROUTING";
+    input = "ens18";
+    modules = [
+      {
+        module = "udp";
+        options.destinationPort = 53;
+      }
+    ];
+    target = {
+      module = "redirect";
+      options.toPorts = 5353;
+    };
+  }
+];
+```
