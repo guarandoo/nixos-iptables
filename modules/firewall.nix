@@ -629,7 +629,7 @@ let
           description = "";
         };
         random = mkOption {
-          type = types.bool;
+          type = types.nullOr types.bool;
           default = null;
           description = "";
         };
