@@ -624,7 +624,7 @@ let
     redirect = {
       options = {
         toPorts = mkOption {
-          type = types.nullOr (types.either [ types.port (types.submodule portRangeOptions) ]);
+          type = types.nullOr (types.either types.port (types.submodule portRangeOptions));
           default = null;
           description = "";
         };
