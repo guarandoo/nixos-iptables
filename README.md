@@ -91,7 +91,7 @@ Masquerade all traffic coming from container interfaces (ve-*) leaving a certain
 
 ```nix
 networking.firewall.rules.extra = [
-  # ip46tables -t mangle -A PREROUTING -i ve-+ -m mark --set-mark 0x01/0xff
+  # ip46tables -t mangle -A PREROUTING -i ve-+ -j MARK --set-mark 0x01/0xff
   {
     version = "any";
     table = "mangle";
@@ -105,7 +105,7 @@ networking.firewall.rules.extra = [
       };
     };
   }
-  # ip46tables -t mangle -A POSTROUTING -o ens3 -m mark --mark 0x01/0xff
+  # ip46tables -t mangle -A POSTROUTING -o ens3 -m mark --mark 0x01/0xff -j MASQUERADE
   {
     version = "any";
     table = "nat";
