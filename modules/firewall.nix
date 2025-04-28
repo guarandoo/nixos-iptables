@@ -46,7 +46,6 @@
   in "${optionalString (set && options.invert) "! "}${switch} ${mapFn options.value or options}";
   mapAddrOptions = mapGenericOptions mapGenericValue;
   mapInterfaceOptions = mapGenericOptions mapGenericValue;
-  mapPortOptions = mapGenericOptions mapPortValue;
 
   mapModuleOptions = module: options: let
     mapOpts = {
