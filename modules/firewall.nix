@@ -481,7 +481,7 @@
     conntrack = {
       options = {
         ctstate = mkOption {
-          type = types.listOf (types.enum [
+          type = types.nullOr (types.listOf (types.enum [
             "INVALID"
             "NEW"
             "ESTABLISHED"
@@ -489,17 +489,19 @@
             "UNTRACKED"
             "SNAT"
             "DNAT"
-          ]);
+          ]));
+          default = null;
           description = "";
         };
         ctstatus = mkOption {
-          type = types.listOf (types.enum [
+          type = types.nullOr (types.listOf (types.enum [
             "NONE"
             "EXPECTED"
             "SEEN_REPLY"
             "ASSURED"
             "CONFIRMED"
-          ]);
+          ]));
+          default = null;
           description = "";
         };
       };
