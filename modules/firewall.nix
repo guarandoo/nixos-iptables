@@ -58,8 +58,8 @@
         ];
       conntrack = options:
         optional (!isNull options) [
-          (optional (!isNull options.ctstate) "--ctstate ${concatStringsSep options.ctstate}")
-          (optional (!isNull options.ctstatus) "--ctstatus ${concatStringsSep options.ctstatus}")
+          (optional (!isNull options.ctstate) "--ctstate ${concatStringsSep "," options.ctstate}")
+          (optional (!isNull options.ctstatus) "--ctstatus ${concatStringsSep "," options.ctstatus}")
         ];
       tcp = options:
         ["-p tcp"]
