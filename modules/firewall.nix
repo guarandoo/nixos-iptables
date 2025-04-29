@@ -24,8 +24,6 @@
     mkDefault
     ;
 
-  isNotNullAndTrue = value: !isNull value && value;
-
   mapGenericValue = value:
     if isList value
     then concatMapStringsSep "," mapGenericValue value
@@ -51,15 +49,15 @@
     mapOpts = {
       addrtype = options:
         optional (!isNull options) [
-          (optional (!isNull options.srcType) "${optionalString (isNotNullAndTrue options.srcType.invert) "!"} --src-type ${options.srcType.type}")
-          (optional (!isNull options.dstType) "${optionalString (isNotNullAndTrue options.srcType.invert) "!"} --dst-type ${options.dstType.type}")
+          (optional (!isNull options.srcType) "${optionalString options.srcType.invert "! "}--src-type ${options.srcType.type}")
+          (optional (!isNull options.dstType) "${optionalString options.srcType.invert "! "}--dst-type ${options.dstType.type}")
           (optional (!isNull options.limitIfaceIn) "--limit-iface-in")
           (optional (!isNull options.limitIfaceOut) "--limit-iface-out")
         ];
       conntrack = options:
         optional (!isNull options) [
-          (optional (!isNull options.ctstate) "--ctstate ${concatStringsSep "," options.ctstate}")
-          (optional (!isNull options.ctstatus) "--ctstatus ${concatStringsSep "," options.ctstatus}")
+          (optional (!isNull options.ctstate) "${optionalString options.ctstate.invert "! "}--ctstate ${concatStringsSep "," options.ctstate}")
+          (optional (!isNull options.ctstatus) "${optionalString options.ctstatus.invert "! "}--ctstatus ${concatStringsSep "," options.ctstatus}")
         ];
       tcp = options:
         ["-p tcp"]
@@ -76,13 +74,13 @@
       icmp = options:
         ["-p icmp"]
         ++ (optional (!isNull options [
-          (optional (!isNull options.icmpType) "${optionalString (isNotNullAndTrue options.icmpType.invert) "!"} --icmp-type ${options.icmpType.type}")
+          (optional (!isNull options.icmpType) "${optionalString options.icmpType.invert "! "}--icmp-type ${options.icmpType.type}")
         ]));
       multiport = options:
         optional (!isNull options) [
-          (optional (!isNull options.sourcePorts) "${optionalString (isNotNullAndTrue options.sourcePorts.invert) "!"} --source-ports ${mapPortValue options.sourcePorts.ports}")
-          (optional (!isNull options.destinationPorts) "${optionalString (isNotNullAndTrue options.destinationPorts.invert) "!"} --destination-ports ${mapPortValue options.destinationPorts.ports}")
-          (optional (!isNull options.ports) "${optionalString (isNotNullAndTrue options.ports.invert) "!"} --ports ${mapPortValue options.ports.ports}")
+          (optional (!isNull options.sourcePorts) "${optionalString options.sourcePorts.invert "! "}--source-ports ${mapPortValue options.sourcePorts.ports}")
+          (optional (!isNull options.destinationPorts) "${optionalString options.destinationPorts.invert "! "}--destination-ports ${mapPortValue options.destinationPorts.ports}")
+          (optional (!isNull options.ports) "${optionalString options.ports.invert "! "}--ports ${mapPortValue options.ports.ports}")
         ];
       mark = options:
         optional (!isNull options) [
@@ -297,8 +295,8 @@
           type = types.submodule {
             options = {
               invert = mkOption {
-                type = types.nullOr types.bool;
-                default = null;
+                type = types.bool;
+                default = false;
                 description = "";
               };
               type = mkOption {
@@ -314,8 +312,8 @@
           type = types.submodule {
             options = {
               invert = mkOption {
-                type = types.nullOr types.bool;
-                default = null;
+                type = types.bool;
+                default = false;
                 description = "";
               };
               type = mkOption {
@@ -345,8 +343,8 @@
           type = types.nullOr (types.submodule {
             options = {
               invert = mkOption {
-                type = types.nullOr types.bool;
-                default = null;
+                type = types.bool;
+                default = false;
                 description = "";
               };
               ports = mkOption {
@@ -366,8 +364,8 @@
           type = types.nullOr (types.submodule {
             options = {
               invert = mkOption {
-                type = types.nullOr types.bool;
-                default = null;
+                type = types.bool;
+                default = false;
                 description = "";
               };
               ports = mkOption {
@@ -387,8 +385,8 @@
           type = types.nullOr (types.submodule {
             options = {
               invert = mkOption {
-                type = types.nullOr types.bool;
-                default = null;
+                type = types.bool;
+                default = false;
                 description = "";
               };
               ports = mkOption {
@@ -480,29 +478,43 @@
     };
     conntrack = {
       options = {
-        ctstate = mkOption {
-          type = types.nullOr (types.listOf (types.enum [
-            "INVALID"
-            "NEW"
-            "ESTABLISHED"
-            "RELATED"
-            "UNTRACKED"
-            "SNAT"
-            "DNAT"
-          ]));
-          default = null;
-          description = "";
+        ctstate = {
+          invert = mkOption {
+            type = types.bool;
+            default = false;
+            description = "";
+          };
+          value = mkOption {
+            type = types.nullOr (types.listOf (types.enum [
+              "INVALID"
+              "NEW"
+              "ESTABLISHED"
+              "RELATED"
+              "UNTRACKED"
+              "SNAT"
+              "DNAT"
+            ]));
+            default = null;
+            description = "";
+          };
         };
-        ctstatus = mkOption {
-          type = types.nullOr (types.listOf (types.enum [
-            "NONE"
-            "EXPECTED"
-            "SEEN_REPLY"
-            "ASSURED"
-            "CONFIRMED"
-          ]));
-          default = null;
-          description = "";
+        ctstatus = {
+          invert = mkOption {
+            type = types.bool;
+            default = false;
+            description = "";
+          };
+          value = mkOption {
+            type = types.nullOr (types.listOf (types.enum [
+              "NONE"
+              "EXPECTED"
+              "SEEN_REPLY"
+              "ASSURED"
+              "CONFIRMED"
+            ]));
+            default = null;
+            description = "";
+          };
         };
       };
     };
