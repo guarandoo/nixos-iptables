@@ -181,30 +181,15 @@ networking.firewall.rules.extra = [
 
 The setup below is useful for redirecting ports only on certain destination addresses *(or interfaces)*.
 
-It also prevents connections directly on the target port forcing them to go through the redirect.
+It also prevents connections directly on the target port forcing packets to go through the redirect.
 
 ```nix
 networking.firewall.rules = {
-  tcp = [
-    # iptables -I nixos-fw -m tcp --dport 2222 -m mark --mark 0x02/0xff -j ACCEPT
-    {
-      destinationPorts = [2222];
-      modules = [
-        {
-          module = "mark";
-          options = {
-            value = "0x02";
-            mask = "0xff";
-          };
-        }
-      ];
-    }
-  ];
   extra = [
-    # iptables -t nat -I PREROUTING -d 1.1.1.1 -m tcp --dport 22 -j MARK --set-mark 0x02/0xff
+    # iptables -t mangle -I PREROUTING -d 1.1.1.1 -m tcp --dport 22 -j MARK --set-mark 0x02/0xff
     {
       version = 4;
-      table = "nat";
+      table = "mangle";
       chain = "PREROUTING";
       destination = [
         "1.1.1.1"
@@ -246,6 +231,21 @@ networking.firewall.rules = {
         module = "redirect";
         options.toPorts = 2222;
       };
+    }
+  ];
+  tcp = [
+    # iptables -A nixos-fw -m tcp --dport 2222 -m mark --mark 0x02/0xff -j ACCEPT
+    {
+      destinationPorts = [2222];
+      modules = [
+        {
+          module = "mark";
+          options = {
+            value = "0x02";
+            mask = "0xff";
+          };
+        }
+      ];
     }
   ];
 };
