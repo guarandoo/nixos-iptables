@@ -692,15 +692,16 @@
       };
     config = {
       version = mkDefault "any";
-      modules = [
-        {
-          module = "tcp";
-        }
-        {
+      modules =
+        [
+          {
+            module = "tcp";
+          }
+        ]
+        ++ optional (config.destinationPorts != null) {
           module = "multiport";
           options.destinationPorts = config.destinationPorts;
-        }
-      ];
+        };
     };
   };
 
@@ -712,15 +713,16 @@
       };
     config = {
       version = mkDefault "any";
-      modules = [
-        {
-          module = "udp";
-        }
-        {
+      modules =
+        [
+          {
+            module = "udp";
+          }
+        ]
+        ++ optional (config.destinationPorts != null) {
           module = "multiport";
           options.destinationPorts = config.destinationPorts;
-        }
-      ];
+        };
     };
   };
 
