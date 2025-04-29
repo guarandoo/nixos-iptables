@@ -177,7 +177,7 @@ networking.firewall.rules.extra = [
 ];
 ```
 
-#### Redirect some TCP packets received on port `22` to port `2222`
+#### Redirect TCP packets received on port `22` to port `2222`
 
 The setup below is useful for redirecting ports only on certain destination addresses *(or interfaces)*.
 
