@@ -176,3 +176,77 @@ networking.firewall.rules.extra = [
   }
 ];
 ```
+
+Redirect some TCP packets received on port `22` to port `2222`
+
+The setup below is useful for redirecting ports only on certain destination addresses *(or interfaces)*.
+
+It also prevents connections directly on the target port forcing them to go through the redirect.
+
+```nix
+networking.firewall.rules = {
+  tcp = [
+    # iptables -I nixos-fw -m tcp --dport 2222 -m mark --mark 0x02/0xff -j ACCEPT
+    {
+      destinationPorts = [2222];
+      modules = [
+        {
+          module = "mark";
+          options = {
+            value = "0x02";
+            mask = "0xff";
+          };
+        }
+      ];
+    }
+  ];
+  extra = [
+    # iptables -t nat -I PREROUTING -d 1.1.1.1 -m tcp --dport 22 -j MARK --set-mark 0x02/0xff
+    {
+      version = 4;
+      table = "nat";
+      chain = "PREROUTING";
+      destination = [
+        "1.1.1.1"
+        "8.8.8.8"
+      ];
+      modules = [
+        {
+          module = "tcp";
+          options.destinationPort = 22;
+        }
+      ];
+      target = {
+        module = "mark";
+        options.mark = {
+          value = "0x02";
+          mask = "0xff";
+        };
+      };
+    }
+    # iptables -t nat -I PREROUTING -m mark --mark 0x02/0xff -m tcp --dport 22 -j REDIRECT --to-ports 2222
+    {
+      version = 4;
+      table = "nat";
+      chain = "PREROUTING";
+      modules = [
+        {
+          module = "mark";
+          options = {
+            value = "0x02";
+            mask = "0xff";
+          };
+        }
+        {
+          module = "tcp";
+          options.destinationPort = 22;
+        }
+      ];
+      target = {
+        module = "redirect";
+        options.toPorts = 2222;
+      };
+    }
+  ];
+};
+```
