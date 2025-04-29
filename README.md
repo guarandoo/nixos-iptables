@@ -250,3 +250,44 @@ networking.firewall.rules = {
   ];
 };
 ```
+
+or alternatively, using the `conntrack` module
+
+```nix
+networking.firewall.rules = {
+  extra = [
+    # iptables -t nat -I PREROUTING -m tcp --dport 22 -j REDIRECT --to-ports 2222
+    {
+      version = 4;
+      table = "nat";
+      chain = "PREROUTING";
+      destination = [
+        "1.1.1.1"
+        "8.8.8.8"
+      ];
+      modules = [
+        {
+          module = "tcp";
+          options.destinationPort = 22;
+        }
+      ];
+      target = {
+        module = "redirect";
+        options.toPorts = 2222;
+      };
+    }
+  ];
+  tcp = [
+    # iptables -A nixos-fw -m tcp --dport 2222 -m conntrack --ctorigdstport 22 -j ACCEPT
+    {
+      destinationPorts = [2222];
+      modules = [
+        {
+          module = "conntrack";
+          options.ctorigdstport = 22;
+        }
+      ];
+    }
+  ];
+};
+```
