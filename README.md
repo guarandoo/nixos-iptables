@@ -40,7 +40,7 @@ Add this repository as an input to your flake and import the module
 
 ### Simple
 
-Allow all inbound traffic on TCP ports 80 and 443
+#### Allow all inbound traffic on TCP ports 80 and 443
 
 ```nix
 networking.firewall.rules.tcp = [
@@ -52,7 +52,7 @@ networking.firewall.rules.tcp = [
 ];
 ```
 
- Allow all inbound traffic on UDP port 53
+#### Allow all inbound traffic on UDP port 53
 
 ```nix
 networking.firewall.rules.udp = [
@@ -64,7 +64,7 @@ networking.firewall.rules.udp = [
 ];
 ```
 
-Prevent traffic destined for RFC1918 addresses from leaving non-private interfaces
+#### Prevent traffic destined for RFC1918 addresses from leaving non-private interfaces
 
 ```nix
 networking.firewall.rules.extra = [
@@ -87,7 +87,7 @@ networking.firewall.rules.extra = [
 
 ### SNAT
 
-Masquerade all traffic coming from container interfaces (ve-*) leaving a certain outbound interface (ens3)
+#### Masquerade all traffic coming from container interfaces (ve-*) leaving a certain outbound interface (ens3)
 
 ```nix
 networking.firewall.rules.extra = [
@@ -127,7 +127,7 @@ networking.firewall.rules.extra = [
 
 ### DNAT
 
-Forward TCP connections received on `192.168.0.1:2222` to `192.168.0.2:22`
+#### Forward TCP connections received on `192.168.0.1:2222` to `192.168.0.2:22`
 
 ```nix
 networking.firewall.rules.extra = [
@@ -153,7 +153,7 @@ networking.firewall.rules.extra = [
 ```
 ### Redirect
 
-Redirect all UDP packets received on port `53` to port `5353`
+#### Redirect all UDP packets received on port `53` to port `5353`
 
 ```nix
 networking.firewall.rules.extra = [
@@ -177,7 +177,7 @@ networking.firewall.rules.extra = [
 ];
 ```
 
-Redirect some TCP packets received on port `22` to port `2222`
+#### Redirect some TCP packets received on port `22` to port `2222`
 
 The setup below is useful for redirecting ports only on certain destination addresses *(or interfaces)*.
 
