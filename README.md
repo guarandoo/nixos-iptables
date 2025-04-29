@@ -87,7 +87,7 @@ networking.firewall.rules.extra = [
 
 ### SNAT
 
-#### Masquerade all traffic coming from container interfaces (ve-*) leaving a certain outbound interface (ens3)
+#### Masquerade all traffic coming from container interfaces (ve-\*) leaving a certain outbound interface (ens3)
 
 ```nix
 networking.firewall.rules.extra = [
@@ -151,6 +151,7 @@ networking.firewall.rules.extra = [
   }
 ];
 ```
+
 ### Redirect
 
 #### Redirect all UDP packets received on port `53` to port `5353`
@@ -179,7 +180,7 @@ networking.firewall.rules.extra = [
 
 #### Redirect TCP packets received on port `22` to port `2222`
 
-The setup below is useful for redirecting ports only on certain destination addresses *(or interfaces)*.
+The setup below is useful for redirecting ports only on certain destination addresses _(or interfaces)_.
 
 It also prevents connections directly on the target port forcing packets to go through the redirect.
 
