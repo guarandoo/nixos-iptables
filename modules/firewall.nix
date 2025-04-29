@@ -32,8 +32,8 @@
     then
       if all (e: hasAttr e value) ["start" "end"]
       then "${toString value.start}:${toString value.end}"
-      else if all (e: hasAttr e.value) ["start" "end"]
-      then "${toString value.start}:${toString value.end}"
+      else if all (e: hasAttr e.value) ["value" "mask"]
+      then "${toString value.value}/${toString value.mask}"
       else throw "unhandled type"
     else if isList value
     then concatMapStringsSep "," mapGenericValue value
@@ -83,7 +83,7 @@
         optional (!isNull options) [
           (optional (!isNull options.ctstate) (mapInvertibleOptionDefault "--ctstate" options.ctstate))
           (optional (!isNull options.ctorigsrc) (mapInvertibleOptionDefault "--ctorigsrc" options.ctorigsrc))
-          (optional (!isNull options.ctrepldst) (mapInvertibleOptionDefault "--ctrepldst" options.ctrepldst))
+          (optional (!isNull options.ctorigdst) (mapInvertibleOptionDefault "--ctorigdst" options.ctorigdst))
           (optional (!isNull options.ctreplsrc) (mapInvertibleOptionDefault "--ctreplsrc" options.ctreplsrc))
           (optional (!isNull options.ctrepldst) (mapInvertibleOptionDefault "--ctrepldst" options.ctrepldst))
           (optional (!isNull options.ctorigsrcport) (mapInvertibleOptionDefault "--ctorigsrcport" options.ctorigsrcport))
@@ -447,10 +447,10 @@
     conntrack = {
       options = {
         ctstate = mkInvertibleOption (types.either (types.enum ctstateEnum) (types.listOf (types.enum ctstateEnum)));
-        ctorigsrc = mkInvertibleOption ipMaskSubmodule;
-        ctorigdst = mkInvertibleOption ipMaskSubmodule;
-        ctreplsrc = mkInvertibleOption ipMaskSubmodule;
-        ctrepldst = mkInvertibleOption ipMaskSubmodule;
+        ctorigsrc = mkInvertibleOption (types.either types.nonEmptyStr ipMaskSubmodule);
+        ctorigdst = mkInvertibleOption (types.either types.nonEmptyStr ipMaskSubmodule);
+        ctreplsrc = mkInvertibleOption (types.either types.nonEmptyStr ipMaskSubmodule);
+        ctrepldst = mkInvertibleOption (types.either types.nonEmptyStr ipMaskSubmodule);
         ctorigsrcport = mkInvertibleOption (types.either types.port (types.submodule portRangeOptions));
         ctorigdstport = mkInvertibleOption (types.either types.port (types.submodule portRangeOptions));
         ctreplsrcport = mkInvertibleOption (types.either types.port (types.submodule portRangeOptions));
