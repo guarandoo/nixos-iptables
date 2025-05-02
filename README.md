@@ -16,7 +16,7 @@ Add this repository as an input to your flake and import the module
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/unstable";
     # ...
-    nixos-iptables.url = "github:guarandoo/nixos-iptables/nixos-23.11"; # add flake as input
+    nixos-iptables.url = "github:guarandoo/nixos-iptables"; # add flake as input
   };
   outputs = {
     nixpkgs,
