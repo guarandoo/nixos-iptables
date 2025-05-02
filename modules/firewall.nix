@@ -113,7 +113,7 @@
       optional (!isNull option) (mapArgument k (findArgumentSchema k).schema option);
     args = mapAttrsToList argMapper moduleSchema;
   in
-    concatStringsSep " " (flatten (moduleSchema.extraArgs or [] ++ args));
+    concatStringsSep " " (flatten (moduleSchema.appendArgs or [] ++ args));
 
   mapTargetArguments = value:
     if isString value
@@ -191,7 +191,7 @@
       (optional (!isNull rule.target) "-j ${rule.target.module or rule.target} ${mapTargetArguments rule.target}")
       (optional (!isNull rule.goto) "-g ${rule.goto}")
       (optional (!isNull rule.comment) "-m comment --comment ${lib.escapeShellArg rule.comment}")
-      (optional (!isNull rule.extraArgs) rule.extraArgs)
+      (optional (!isNull rule.appendArgs) rule.appendArgs)
     ]);
   # endregion
 
@@ -264,7 +264,7 @@
       description = "";
       default = [];
     };
-    extraArgs = mkOption {
+    appendArgs = mkOption {
       type = types.nullOr types.nonEmptyStr;
       description = "";
       default = null;
@@ -380,7 +380,7 @@
       destination
       protocol
       modules
-      extraArgs
+      appendArgs
       target
       goto
       comment
