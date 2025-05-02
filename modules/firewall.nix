@@ -12,6 +12,11 @@
     attrNames
     hasAttr
     all
+    length
+    elemAt
+    elem
+    filter
+    mapAttrs
     ;
 
   inherit
@@ -24,15 +29,25 @@
     concatMapStringsSep
     optionalString
     mkDefault
+    mapAttrsToList
+    mapAttrs'
+    nameValuePair
     ;
+
+  # region lib
+  concatMapLinesSep = concatMapStringsSep "\n";
+
+  hasAttrs = xs: s: all (e: hasAttr e xs) s;
+  hasAttrsMatchingCondition = xs: c: s: all (e: hasAttr e xs) s;
+  # endregion
 
   # region value mappers
   mapGenericValue = value:
     if isAttrs value
     then
-      if all (e: hasAttr e value) ["start" "end"]
-      then "${toString value.start}:${toString value.end}"
-      else if all (e: hasAttr e.value) ["value" "mask"]
+      if hasAttrsMatchingCondition value isInt ["from" "to"]
+      then "${toString value.from}${value.separator}${toString value.to}"
+      else if hasAttrs value ["value" "mask"]
       then "${toString value.value}/${toString value.mask}"
       else throw "unhandled type"
     else if isList value
@@ -41,15 +56,6 @@
     then value
     else if isInt value
     then toString value
-    else throw "unhandled type";
-
-  mapPortValue = value:
-    if isInt value
-    then toString value
-    else if isList value
-    then concatMapStringsSep "," mapPortValue value
-    else if isAttrs value
-    then "${toString value.start}:${toString value.end}"
     else throw "unhandled type";
 
   selectorDefault = options:
@@ -61,7 +67,6 @@
     else options;
 
   mapOption = mapFn: selector: switch: options: "${switch} ${mapFn (selector options)}";
-  mapOptionDefault = mapOption mapGenericValue selectorDefault;
 
   mapInvertibleOption = mapFn: selector: switch: options: let
     set = isAttrs options;
@@ -69,196 +74,98 @@
   mapInvertibleOptionDefault = mapInvertibleOption mapGenericValue selectorDefault;
   # endregion
 
-  # region module mapper
-  mapModuleOptions = module: options: let
-    mapOpts = {
-      addrtype = options:
-        optional (!isNull options) [
-          (optional (!isNull options.srcType) (mapInvertibleOptionDefault "--src-type" options.srcType))
-          (optional (!isNull options.dstType) (mapInvertibleOptionDefault "--dst-type" options.dstType))
-          (optional (!isNull options.limitIfaceIn) "--limit-iface-in")
-          (optional (!isNull options.limitIfaceOut) "--limit-iface-out")
-        ];
-      conntrack = options:
-        optional (!isNull options) [
-          (optional (!isNull options.ctstate) (mapInvertibleOptionDefault "--ctstate" options.ctstate))
-          (optional (!isNull options.ctorigsrc) (mapInvertibleOptionDefault "--ctorigsrc" options.ctorigsrc))
-          (optional (!isNull options.ctorigdst) (mapInvertibleOptionDefault "--ctorigdst" options.ctorigdst))
-          (optional (!isNull options.ctreplsrc) (mapInvertibleOptionDefault "--ctreplsrc" options.ctreplsrc))
-          (optional (!isNull options.ctrepldst) (mapInvertibleOptionDefault "--ctrepldst" options.ctrepldst))
-          (optional (!isNull options.ctorigsrcport) (mapInvertibleOptionDefault "--ctorigsrcport" options.ctorigsrcport))
-          (optional (!isNull options.ctorigdstport) (mapInvertibleOptionDefault "--ctorigdstport" options.ctorigdstport))
-          (optional (!isNull options.ctreplsrcport) (mapInvertibleOptionDefault "--ctreplsrcport" options.ctreplsrcport))
-          (optional (!isNull options.ctrepldstport) (mapInvertibleOptionDefault "--ctrepldstport" options.ctrepldstport))
-          (optional (!isNull options.ctstatus) (mapInvertibleOptionDefault "--ctstatus" options.ctstatus))
-        ];
-      tcp = options:
-        ["-p tcp"]
-        ++ (optional (!isNull options) [
-          (optional (!isNull options.sourcePort) (mapOptionDefault "--source-port" options.sourcePort))
-          (optional (!isNull options.destinationPort) (mapOptionDefault "--destination-port" options.destinationPort))
-        ]);
-      udp = options:
-        ["-p udp"]
-        ++ (optional (!isNull options) [
-          (optional (!isNull options.sourcePort) (mapOptionDefault "--source-port" options.sourcePort))
-          (optional (!isNull options.destinationPort) (mapOptionDefault "--destination-port" options.destinationPort))
-        ]);
-      icmp = options:
-        ["-p icmp"]
-        ++ (optional (!isNull options [
-          (optional (!isNull options.icmpType) (mapInvertibleOptionDefault "--icmp-type" options.icmpType.type))
-        ]));
-      multiport = options:
-        optional (!isNull options) [
-          (optional (!isNull options.sourcePorts) (mapInvertibleOptionDefault "--source-ports" options.sourcePorts))
-          (optional (!isNull options.destinationPorts) (mapInvertibleOptionDefault "--destination-ports" options.destinationPorts))
-          (optional (!isNull options.ports) (mapInvertibleOptionDefault "--ports" options.ports))
-        ];
-      mark = options:
-        optional (!isNull options) [
-          "--mark ${options.mark.value}${optionalString (!isNull options.mark.mask) "/${options.mark.mask}"}"
-        ];
-    };
-    fn = mapOpts.${module};
-  in
-    concatStringsSep " " (flatten (fn options));
-  # endregion
+  # | prefix     | optional | "-"
+  # | name       | optional | attribute name
+  # | invertible | optional | false
+  # | flag       | optional | false
 
-  # region target mapper
-  mapTargetOptions = target: let
-    mapOpts = {
-      balance = options:
-        optional (!isNull options) [
-          "BALANCE"
-          (optional (!isNull options.toDestination) "--to-destination ${options.toDestination}")
-        ];
-      classify = options:
-        optional (!isNull options) [
-          "CLASSIFY"
-        ];
-      clusterip = options:
-        optional (!isNull options) [
-          "CLUSTERIP"
-        ];
-      connmark = options:
-        optional (!isNull options) [
-          "CONNMARK"
-        ];
-      dnat = options:
-        optional (!isNull options) [
-          "DNAT"
-          (optional (!isNull options.toDestination) "--to-destination ${options.toDestination}")
-        ];
-      dscp = options:
-        optional (!isNull options) [
-          "DSCP"
-        ];
-      ecn = options:
-        optional (!isNull options) [
-          "ECN"
-        ];
-      ipmark = options:
-        optional (!isNull options) [
-          "IPMARK"
-        ];
-      ipv4optsstrip = options:
-        optional (!isNull options) [
-          "IPV4OPTSSTRIP"
-        ];
-      log = options:
-        optional (!isNull options) [
-          "LOG"
-          (optional (!isNull options.level) "--log-level ${options.level}")
-          (optional (!isNull options.prefix) "--log-prefix ${options.prefix}")
-          (optional (!isNull options.tcpSequence) "--log-tcp-sequence")
-          (optional (!isNull options.tcpOptions) "--log-tcp-options")
-          (optional (!isNull options.ipOptions) "--log-ip-options")
-          (optional (!isNull options.uid) "--log-uid")
-        ];
-      mark = options:
-        optional (!isNull options) [
-          "MARK"
-          (optional (!isNull options.mark) "--set-mark ${options.mark.value}${optionalString (!isNull options.mark.mask) "/${options.mark.mask}"}")
-          (optional (!isNull options.xmark) "--set-xmark ${options.xmark.value}${optionalString (!isNull options.xmark.mask) "/${options.xmark.mask}"}")
-          (optional (!isNull options.andMark) "--and-mark ${options.andMark}")
-          (optional (!isNull options.orMark) "--or-mark ${options.orMark}")
-          (optional (!isNull options.xorMark) "--xor-mark ${options.xorMark}")
-        ];
-      masquerade = options:
-        optional (!isNull options) [
-          "MASQUERADE"
-          (optional (!isNull options.toPorts) "--to-ports ${options.toPorts}")
-        ];
-      mirror = options:
-        optional (!isNull options) [
-          "MIRROR"
-        ];
-      netmap = options:
-        optional (!isNull options) [
-          "NETMAP"
-        ];
-      nfqueue = options:
-        optional (!isNull options) [
-          "NFQUEUE"
-        ];
-      notrack = options:
-        optional (!isNull options) [
-          "NOTRACK"
-        ];
-      redirect = options:
-        optional (!isNull options) [
-          "REDIRECT"
-          (optional (!isNull options.toPorts) "--to-ports ${mapPortValue options.toPorts}")
-          (optional (!isNull options.random) "--random")
-        ];
-      same = options:
-        optional (!isNull options) [
-          "SAME"
-        ];
-      set = options:
-        optional (!isNull options) [
-          "SET"
-        ];
-      snat = options:
-        optional (!isNull options) [
-          "SNAT"
-          (optional (!isNull options.toSource) "--to-source ${options.toSource}")
-        ];
-      tarpit = options:
-        optional (!isNull options) [
-          "TARPIT"
-        ];
-      tcpmss = options:
-        optional (!isNull options) [
-          "TCPMSS"
-        ];
-      trace = options:
-        optional (!isNull options) [
-          "TRACE"
-        ];
-      ttl = options:
-        optional (!isNull options) [
-          "TTL"
-        ];
-      ulog = options:
-        optional (!isNull options) [
-          "ULOG"
-        ];
-      xor = options:
-        optional (!isNull options) [
-          "XOR"
-        ];
-    };
-    fn = mapOpts.${target.module};
+  matcherSchemas = import ./schemas/matcher.nix {inherit lib;};
+  targetSchemas = import ./schemas/target.nix {inherit lib;};
+
+  mapArgument = name: schema: options: let
+    switch = schema.name;
+    prefix = schema.prefix;
+    mappedValue = mapGenericValue options;
   in
-    if isString target
-    then target
-    else (concatStringsSep " " (flatten (fn target.options)));
-  # endregion
+    if schema.flag or false
+    then "${prefix}${switch}"
+    else if !isAttrs options
+    then "${prefix}${switch} ${mappedValue}"
+    else if !schema.invertible
+    then "${prefix}${switch} ${mappedValue}"
+    else "${optionalString (schema.invertible && (options.invert or false)) "! "}${prefix}${switch} ${mappedValue}";
+
+  mapArguments = schemaSet: module: options: let
+    moduleSchema = schemaSet.${module}.options or (throw "unknown module: ${module}");
+    findArgumentSchema = name: let
+      matching = filter (e: elem name e.names) (mapAttrsToList (k: v: {
+          names = [k] ++ v.aliases;
+          schema = v;
+        })
+        moduleSchema);
+    in
+      if length matching != 0
+      then elemAt matching 0
+      else throw "unknown argument: ${name}";
+    argMapper = k: v: let
+      option = options.${k} or null;
+    in
+      optional (!isNull option) (mapArgument k (findArgumentSchema k).schema option);
+    args = mapAttrsToList argMapper moduleSchema;
+  in
+    concatStringsSep " " (flatten (moduleSchema.extraArgs or [] ++ args));
+
+  mapTargetArguments = value:
+    if isString value
+    then value
+    else mapArguments targetSchemas value.module value.options;
+
+  makeInvertibleValueType = type:
+    types.either
+    type
+    (types.submodule {
+      options = {
+        invert = mkOption {
+          type = types.bool;
+          default = false;
+          description = "";
+        };
+        value = mkOption {
+          type = types.nullOr type;
+          default = null;
+          description = "";
+        };
+      };
+    });
+  makeOptionalInvertableOption = type:
+    mkOption {
+      type = types.nullOr (makeInvertibleValueType type);
+      default = null;
+      description = "";
+    };
+
+  mapOptions = schemaSet: module: let
+    optionsSchema = schemaSet.${module}.options or (throw "unknown module: ${module}");
+
+    getOptionType = schema:
+      if !schema.invertible
+      then schema.type
+      else makeInvertibleValueType schema.type;
+  in
+    mapAttrs' (k: v: let
+    in
+      nameValuePair k (mkOption {
+        type = types.nullOr (getOptionType v);
+        default = null;
+        description = "";
+      }))
+    optionsSchema;
+
+  moduleTypes = mapAttrs (k: _: mapOptions matcherSchemas k) (mapAttrs (_: v: builtins.trace v.options v.options) matcherSchemas);
+  targetTypes = mapAttrs (k: _: mapOptions targetSchemas k) (mapAttrs (_: v: builtins.trace v.options v.options) targetSchemas);
 
   # region rule mapper
-  mapRule = rule: active:
+  mapRule = active: rule:
     concatStringsSep " "
     (flatten [
       (
@@ -280,36 +187,21 @@
       (optional (!isNull rule.source) (mapInvertibleOptionDefault "-s" rule.source))
       (optional (!isNull rule.destination) (mapInvertibleOptionDefault "-d" rule.destination))
       (optional (!isNull rule.protocol) (mapInvertibleOptionDefault "-p" rule.protocol))
-      (concatMapStringsSep " " (module: "-m ${module.module} ${mapModuleOptions module.module module.options}") rule.modules)
-      (optional (!isNull rule.target) "-j ${mapTargetOptions rule.target}")
+      (concatMapStringsSep " " (module: "-m ${module.module} ${mapArguments matcherSchemas module.module module.options}") rule.modules)
+      (optional (!isNull rule.target) "-j ${rule.target.module or rule.target} ${mapTargetArguments rule.target}")
       (optional (!isNull rule.goto) "-g ${rule.goto}")
       (optional (!isNull rule.comment) "-m comment --comment ${lib.escapeShellArg rule.comment}")
       (optional (!isNull rule.extraArgs) rule.extraArgs)
     ]);
   # endregion
 
-  addrTypesEnum = [
-    "UNSPEC"
-    "UNICAST"
-    "LOCAL"
-    "BROADCAST"
-    "ANYCAST"
-    "MULTICAST"
-    "BLACKHOLE"
-    "UNREACHABLE"
-    "PROHIBIT"
-    "THROW"
-    "NAT"
-    "XRESOLVE"
-  ];
-
   portRangeOptions = {
     options = {
-      start = mkOption {
+      from = mkOption {
         type = types.port;
         description = "";
       };
-      end = mkOption {
+      to = mkOption {
         type = types.port;
         description = "";
       };
@@ -325,308 +217,6 @@
     "address-mask-request"
     "address-mask-reply"
   ];
-
-  ctstateEnum = [
-    "INVALID"
-    "NEW"
-    "ESTABLISHED"
-    "RELATED"
-    "UNTRACKED"
-    "SNAT"
-    "DNAT"
-  ];
-  ctstatusEnum = [
-    "NONE"
-    "EXPECTED"
-    "SEEN_REPLY"
-    "ASSURED"
-    "CONFIRMED"
-  ];
-
-  invertible = type: {
-    invert = mkOption {
-      type = types.bool;
-      default = false;
-      description = "";
-    };
-    value = mkOption {
-      type = types.nullOr type;
-      default = null;
-      description = "";
-    };
-  };
-
-  mkInvertibleOption = type:
-    mkOption {
-      type = types.nullOr (types.either type (types.submodule {options = invertible type;}));
-      default = null;
-      description = "";
-    };
-
-  valueMaskSubmodule = valueType: maskType:
-    types.submodule {
-      options = {
-        value = mkOption {
-          type = valueType;
-          description = "";
-        };
-        mask = mkOption {
-          type = maskType;
-          description = "";
-        };
-      };
-    };
-  stringMaskSubmodule = valueMaskSubmodule types.nonEmptyStr types.nonEmptyStr;
-  ipMaskSubmodule = valueMaskSubmodule types.nonEmptyStr types.int;
-
-  moduleSettingsOptions = {
-    addrtype = {
-      options = {
-        srcType = mkInvertibleOption (types.enum addrTypesEnum);
-        dstType = mkInvertibleOption (types.enum addrTypesEnum);
-        limitIfaceIn = mkOption {
-          type = types.nullOr types.bool;
-          default = null;
-          description = "";
-        };
-        limitIfaceOut = mkOption {
-          type = types.nullOr types.bool;
-          default = null;
-          description = "";
-        };
-      };
-    };
-    multiport = {
-      options = {
-        sourcePorts = mkInvertibleOption (types.oneOf [
-          types.port
-          (types.submodule portRangeOptions)
-          (types.listOf (types.either types.port (types.submodule portRangeOptions)))
-        ]);
-        destinationPorts = mkInvertibleOption (types.oneOf [
-          types.port
-          (types.submodule portRangeOptions)
-          (types.listOf (types.either types.port (types.submodule portRangeOptions)))
-        ]);
-        ports = mkInvertibleOption (types.oneOf [
-          types.port
-          (types.submodule portRangeOptions)
-          (types.listOf (types.either types.port (types.submodule portRangeOptions)))
-        ]);
-      };
-    };
-    tcp = {
-      options = {
-        sourcePort = mkInvertibleOption types.port;
-        destinationPort = mkInvertibleOption types.port;
-        tcpFlags = mkInvertibleOption (types.listOf (types.enum [
-          "SYN"
-          "ACK"
-          "FIN"
-          "RST"
-          "URG"
-          "PSH"
-          "ALL"
-          "NONE"
-        ]));
-        syn = mkInvertibleOption types.bool;
-        tcpOption = mkInvertibleOption types.int;
-      };
-    };
-    udp = {
-      options = {
-        sourcePort = mkInvertibleOption types.port;
-        destinationPort = mkInvertibleOption types.port;
-      };
-    };
-    mark = {
-      options = {
-        mark = mkInvertibleOption stringMaskSubmodule;
-      };
-    };
-    conntrack = {
-      options = {
-        ctstate = mkInvertibleOption (types.either (types.enum ctstateEnum) (types.listOf (types.enum ctstateEnum)));
-        ctorigsrc = mkInvertibleOption (types.either types.nonEmptyStr ipMaskSubmodule);
-        ctorigdst = mkInvertibleOption (types.either types.nonEmptyStr ipMaskSubmodule);
-        ctreplsrc = mkInvertibleOption (types.either types.nonEmptyStr ipMaskSubmodule);
-        ctrepldst = mkInvertibleOption (types.either types.nonEmptyStr ipMaskSubmodule);
-        ctorigsrcport = mkInvertibleOption (types.either types.port (types.submodule portRangeOptions));
-        ctorigdstport = mkInvertibleOption (types.either types.port (types.submodule portRangeOptions));
-        ctreplsrcport = mkInvertibleOption (types.either types.port (types.submodule portRangeOptions));
-        ctrepldstport = mkInvertibleOption (types.either types.port (types.submodule portRangeOptions));
-        ctstatus = mkInvertibleOption (types.either (types.enum ctstatusEnum) (types.listOf (types.enum ctstatusEnum)));
-        ctexpire = mkInvertibleOption types.string;
-      };
-    };
-    icmp = {
-      options = {
-        icmpType = mkInvertibleOption types.oneOf [
-          types.int
-          (types.enum icmpTypesEnum)
-        ];
-      };
-    };
-  };
-
-  moduleOptions = {config, ...}: {
-    options = {
-      module = mkOption {
-        type = types.enum (attrNames moduleSettingsOptions);
-        description = "";
-      };
-      options = mkOption {
-        type = types.nullOr (types.submodule moduleSettingsOptions.${config.module} or {});
-        default = null;
-        description = "";
-      };
-    };
-  };
-
-  targetSettingsOptions = {
-    balance = {
-      options = {
-        toDestination = mkOption {
-          type = types.nonEmptyStr;
-          description = "";
-        };
-      };
-    };
-    classify = {
-      options = {};
-    };
-    clusterip = {
-      options = {};
-    };
-    connmark = {
-      options = {};
-    };
-    dnat = {
-      options = {
-        toDestination = mkOption {
-          type = types.nonEmptyStr;
-          description = "";
-        };
-      };
-    };
-    log = {
-      options = {
-        level = mkOption {
-          type = types.nullOr types.int;
-          description = "";
-        };
-        prefix = mkOption {
-          type = types.nullOr types.nonEmptyStr;
-          description = "";
-        };
-        tcpSequence = mkOption {
-          type = types.nullOr types.bool;
-          description = "";
-        };
-        tcpOptions = mkOption {
-          type = types.nullOr types.bool;
-          description = "";
-        };
-        ipOptions = mkOption {
-          type = types.nullOr types.bool;
-          description = "";
-        };
-        uid = mkOption {
-          type = types.nullOr types.bool;
-          description = "";
-        };
-      };
-    };
-    mark = {
-      options = {
-        mark = mkOption {
-          type = types.nullOr (types.submodule {
-            options = {
-              value = mkOption {
-                type = types.nonEmptyStr;
-                description = "";
-              };
-              mask = mkOption {
-                type = types.nullOr types.nonEmptyStr;
-                default = null;
-                description = "";
-              };
-            };
-          });
-          default = null;
-          description = "";
-        };
-        xmark = mkOption {
-          type = types.nullOr (types.submodule {
-            options = {
-              value = mkOption {
-                type = types.nonEmptyStr;
-                description = "";
-              };
-              mask = mkOption {
-                type = types.nullOr types.nonEmptyStr;
-                default = null;
-                description = "";
-              };
-            };
-          });
-          default = null;
-          description = "";
-        };
-        andMark = mkOption {
-          type = types.nullOr types.nonEmptyStr;
-          default = null;
-          description = "";
-        };
-        orMark = mkOption {
-          type = types.nullOr types.nonEmptyStr;
-          default = null;
-          description = "";
-        };
-        xorMark = mkOption {
-          type = types.nullOr types.nonEmptyStr;
-          default = null;
-          description = "";
-        };
-      };
-    };
-    redirect = {
-      options = {
-        toPorts = mkOption {
-          type = types.nullOr (types.either types.port (types.submodule portRangeOptions));
-          default = null;
-          description = "";
-        };
-        random = mkOption {
-          type = types.nullOr types.bool;
-          default = null;
-          description = "";
-        };
-      };
-    };
-    snat = {
-      options = {
-        toSource = mkOption {
-          type = types.nonEmptyStr;
-          description = "";
-        };
-      };
-    };
-  };
-
-  targetOptions = {config, ...}: {
-    options = {
-      module = mkOption {
-        type = types.enum (attrNames targetSettingsOptions);
-        description = "";
-      };
-      options = mkOption {
-        type = types.nullOr (types.submodule targetSettingsOptions.${config.module} or {});
-        default = null;
-        description = "";
-      };
-    };
-  };
 
   ruleOptions = {
     version = mkOption {
@@ -644,17 +234,33 @@
       default = "nixos-fw";
       description = "";
     };
-    input = mkInvertibleOption (types.either types.nonEmptyStr (types.listOf types.nonEmptyStr));
-    output = mkInvertibleOption (types.either types.nonEmptyStr (types.listOf types.nonEmptyStr));
-    source = mkInvertibleOption (types.either types.nonEmptyStr (types.listOf types.nonEmptyStr));
-    destination = mkInvertibleOption (types.either types.nonEmptyStr (types.listOf types.nonEmptyStr));
+    input = makeOptionalInvertableOption (types.either types.nonEmptyStr (types.listOf types.nonEmptyStr));
+    output = makeOptionalInvertableOption (types.either types.nonEmptyStr (types.listOf types.nonEmptyStr));
+    source = makeOptionalInvertableOption (types.either types.nonEmptyStr (types.listOf types.nonEmptyStr));
+    destination = makeOptionalInvertableOption (types.either types.nonEmptyStr (types.listOf types.nonEmptyStr));
     protocol = mkOption {
       type = types.nullOr (types.oneOf [types.int (types.enum ["tcp" "udp" "vrrp" "ah"])]);
       description = "";
       default = null;
     };
     modules = mkOption {
-      type = types.listOf (types.submodule moduleOptions);
+      type = types.listOf (types.submodule ({config, ...}: let
+        moduleOptions = moduleTypes.${config.module} or (throw "unknown module: ${config.module}");
+      in {
+        options = {
+          module = mkOption {
+            type = types.either types.nonEmptyStr (types.enum (attrNames moduleTypes));
+            description = "";
+          };
+          options = mkOption {
+            type = types.nullOr (types.submodule {
+              options = moduleOptions;
+            });
+            default = null;
+            description = "";
+          };
+        };
+      }));
       description = "";
       default = [];
     };
@@ -664,7 +270,23 @@
       default = null;
     };
     target = mkOption {
-      type = types.either types.nonEmptyStr (types.submodule targetOptions);
+      type = types.either types.nonEmptyStr (types.submodule ({config, ...}: let
+        targetOptions = targetTypes.${config.module} or (throw "unknown target: ${config.module}");
+      in {
+        options = {
+          module = mkOption {
+            type = types.either types.nonEmptyStr (types.enum (attrNames targetTypes));
+            description = "";
+          };
+          options = mkOption {
+            type = types.nullOr (types.submodule {
+              options = targetOptions;
+            });
+            default = null;
+            description = "";
+          };
+        };
+      }));
       description = "";
       default = "nixos-fw-accept";
     };
@@ -688,7 +310,7 @@
     options =
       ruleOptions
       // {
-        destinationPorts = mkInvertibleOption (types.listOf (types.either types.port (types.submodule portRangeOptions)));
+        destinationPorts = makeOptionalInvertableOption (types.listOf (types.either types.port (types.submodule portRangeOptions)));
       };
     config = {
       version = mkDefault "any";
@@ -709,7 +331,7 @@
     options =
       ruleOptions
       // {
-        destinationPorts = mkInvertibleOption (types.listOf (types.either types.port (types.submodule portRangeOptions)));
+        destinationPorts = makeOptionalInvertableOption (types.listOf (types.either types.port (types.submodule portRangeOptions)));
       };
     config = {
       version = mkDefault "any";
@@ -771,6 +393,9 @@
     ++ (map (toRule "udp") cfg.rules.udp)
     ++ (map (toRule "icmp") cfg.rules.icmp)
     ++ cfg.rules.extra;
+
+  extraCommands = "${concatMapLinesSep (mapRule true) rules}\n";
+  extraStopCommands = "${concatMapLinesSep (rule: "${mapRule rule false} || true") rules}\n";
 in {
   options = {
     networking.firewall = {
@@ -778,30 +403,30 @@ in {
         tcp = mkOption {
           type = types.listOf (types.submodule tcpRuleModule);
           default = [];
-          description = "";
+          description = "TCP firewall rules.";
         };
         udp = mkOption {
           type = types.listOf (types.submodule udpRuleModule);
           default = [];
-          description = "";
+          description = "UDP firewall rules.";
         };
         icmp = mkOption {
           type = types.listOf (types.submodule icmpRuleModule);
           default = [];
-          description = "";
+          description = "ICMP firewall rules.";
         };
         extra = mkOption {
           type = types.listOf (types.submodule ruleModule);
           default = [];
-          description = "";
+          description = "Extra firewall rules.";
         };
       };
     };
   };
   config = {
     networking.firewall = {
-      extraCommands = concatMapStringsSep "\n" (rule: mapRule rule true) rules;
-      extraStopCommands = concatMapStringsSep "\n" (rule: "${mapRule rule false} || true") rules;
+      inherit extraCommands;
+      inherit extraStopCommands;
     };
   };
 }

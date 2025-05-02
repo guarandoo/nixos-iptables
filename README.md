@@ -241,7 +241,7 @@ networking.firewall.rules = {
       modules = [
         {
           module = "mark";
-          options = {
+          options.mark = {
             value = "0x02";
             mask = "0xff";
           };
@@ -257,7 +257,7 @@ or alternatively, using the `conntrack` module
 ```nix
 networking.firewall.rules = {
   extra = [
-    # iptables -t nat -I PREROUTING -m tcp --dport 22 -j REDIRECT --to-ports 2222
+    # iptables -t nat -I PREROUTING -d 1.1.1.1,8.8.8.8 -m tcp --dport 22 -j REDIRECT --to-ports 2222
     {
       version = 4;
       table = "nat";
@@ -273,7 +273,7 @@ networking.firewall.rules = {
         }
       ];
       target = {
-        module = "redirect";
+        module = "REDIRECT";
         options.toPorts = 2222;
       };
     }
