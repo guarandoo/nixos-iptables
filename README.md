@@ -46,8 +46,8 @@ Add this repository as an input to your flake and import the module
 networking.firewall.rules.tcp = [
   # ip46tables -A nixos-firewall -m tcp -p tcp -m multiport --destination-ports 80,443 -j nixos-fw-accept -m --comment 'nginx'
   {
-    ports = [80 443];
-    description = "nginx";
+    destinationPorts = [80 443];
+    comment = "nginx";
   }
 ];
 ```
@@ -59,7 +59,7 @@ networking.firewall.rules.udp = [
   # ip46tables -A nixos-firewall -m udp -p udp -m multiport --destination-ports 53 -j nixos-fw-accept -m --comment 'dns'
   {
     destinationPorts = [53];
-    description = "dns";
+    comment = "dns";
   }
 ];
 ```
@@ -80,7 +80,7 @@ networking.firewall.rules.extra = [
       invert = true;
       value = "ens3";
     };
-    description = "drop bogons";
+    comment = "drop bogons";
   }
 ];
 ```
@@ -98,8 +98,8 @@ networking.firewall.rules.extra = [
     chain = "PREROUTING";
     input = "ve-+";
     target = {
-      module = "mark";
-      options.mark = {
+      module = "MARK";
+      options.setMark = {
         value = "0x01";
         mask = "0xff";
       };
@@ -114,7 +114,7 @@ networking.firewall.rules.extra = [
     modules = [
       {
         module = "mark";
-        options = {
+        options.mark = {
           value = "0x01";
           mask = "0xff";
         };
@@ -145,7 +145,7 @@ networking.firewall.rules.extra = [
       }
     ];
     target = {
-      module = "dnat";
+      module = "DNAT";
       options.toDestination = "192.168.0.2:22";
     };
   }
@@ -171,7 +171,7 @@ networking.firewall.rules.extra = [
       }
     ];
     target = {
-      module = "redirect";
+      module = "REDIRECT";
       options.toPorts = 5353;
     };
   }
@@ -203,8 +203,8 @@ networking.firewall.rules = {
         }
       ];
       target = {
-        module = "mark";
-        options.mark = {
+        module = "MARK";
+        options.setMark = {
           value = "0x02";
           mask = "0xff";
         };
@@ -218,7 +218,7 @@ networking.firewall.rules = {
       modules = [
         {
           module = "mark";
-          options = {
+          options.mark = {
             value = "0x02";
             mask = "0xff";
           };
@@ -229,7 +229,7 @@ networking.firewall.rules = {
         }
       ];
       target = {
-        module = "redirect";
+        module = "REDIRECT";
         options.toPorts = 2222;
       };
     }
