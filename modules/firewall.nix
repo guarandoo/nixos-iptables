@@ -163,7 +163,7 @@
 
   moduleTypes = mapAttrs (k: _: mapOptions matcherSchemas k) (mapAttrs (_: v: builtins.trace v.options v.options) matcherSchemas);
   targetTypes = mapAttrs (k: _: mapOptions targetSchemas k) (mapAttrs (_: v: builtins.trace v.options v.options) targetSchemas);
-  
+
   # region rule mapper
   mapRule = active: rule:
     concatStringsSep " "
@@ -187,7 +187,7 @@
       (optional (!isNull rule.source) (mapInvertibleOptionDefault "-s" rule.source))
       (optional (!isNull rule.destination) (mapInvertibleOptionDefault "-d" rule.destination))
       (optional (!isNull rule.protocol) (mapInvertibleOptionDefault "-p" rule.protocol))
-      (concatMapStringsSep " " (module: "-m ${module.module} ${mapArguments matcherSchemas module.module module.options} ${module.extraArgs}") rule.modules)
+      (concatMapStringsSep " " (module: "-m ${module.module} ${mapArguments matcherSchemas module.module module.options} ${optionalString (!isNull module.extraArgs) module.extraArgs}") rule.modules)
       (optional (!isNull rule.target) "-j ${rule.target.module or rule.target} ${mapTargetArguments rule.target}")
       (optional (!isNull rule.goto) "-g ${rule.goto}")
       (optional (!isNull rule.comment) "-m comment --comment ${lib.escapeShellArg rule.comment}")
@@ -260,9 +260,9 @@
             description = "";
           };
           extraArgs = mkOption {
-            type=types.nullOr types.nonEmptyStr;
-            default=null;
-            description="";
+            type = types.nullOr types.nonEmptyStr;
+            default = null;
+            description = "";
           };
         };
       }));
