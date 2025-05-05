@@ -1,6 +1,6 @@
 # nixos-iptables
 
-#### WARNING: This is in very early stages and not all functionality is tested, use at your own risk, PRs to cover more options are welcome.
+> ⚠️ WARNING: This is in very early stages and not all functionality is tested, use at your own risk, PRs to cover more options are welcome.
 
 A declarative module for `iptables`.
 
